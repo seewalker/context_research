@@ -1,0 +1,974 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.5.4
+-- Dumped by pg_dump version 9.5.4
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: arch_ctx_reprs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE arch_ctx_reprs (
+    timestep integer,
+    walltime date,
+    imgname text,
+    isperfect integer,
+    iseven integer,
+    canid text,
+    repr text,
+    split text,
+    category text,
+    nickname text,
+    seen integer
+);
+
+
+ALTER TABLE arch_ctx_reprs OWNER TO aseewald;
+
+--
+-- Name: attentionvals; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE attentionvals (
+    nickname text,
+    timestep integer,
+    type text,
+    filtid integer,
+    summaryimgname text,
+    raw double precision,
+    raw_rel double precision,
+    readable double precision,
+    readable_rel double precision
+);
+
+
+ALTER TABLE attentionvals OWNER TO aseewald;
+
+--
+-- Name: candidate_bbox; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE candidate_bbox (
+    imgname character varying NOT NULL,
+    canid integer NOT NULL,
+    type text NOT NULL,
+    min integer,
+    maxy integer,
+    minx integer,
+    maxx integer,
+    dataset text NOT NULL
+);
+
+
+ALTER TABLE candidate_bbox OWNER TO aseewald;
+
+--
+-- Name: candidate_centroid; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE candidate_centroid (
+    imgname character varying NOT NULL,
+    canid integer NOT NULL,
+    type text NOT NULL,
+    y integer,
+    x integer,
+    dataset text NOT NULL
+);
+
+
+ALTER TABLE candidate_centroid OWNER TO aseewald;
+
+--
+-- Name: candidate_object_distribution; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE candidate_object_distribution (
+    imgname character varying NOT NULL,
+    splitid integer NOT NULL,
+    canid integer NOT NULL,
+    type text NOT NULL,
+    distr text,
+    dataset text NOT NULL
+);
+
+
+ALTER TABLE candidate_object_distribution OWNER TO aseewald;
+
+--
+-- Name: candistrs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE candistrs (
+    imgname text,
+    vec text,
+    splitid integer,
+    nickname text,
+    canid integer,
+    tstep integer
+);
+
+
+ALTER TABLE candistrs OWNER TO aseewald;
+
+--
+-- Name: clsvecs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE clsvecs (
+    timestep integer,
+    walltime date,
+    nickname text,
+    splitid text,
+    vec text,
+    gt text
+);
+
+
+ALTER TABLE clsvecs OWNER TO aseewald;
+
+--
+-- Name: correlation; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE correlation (
+    timestep integer,
+    walltime date,
+    corrwith text,
+    seen integer,
+    channel integer,
+    sigmacorr double precision,
+    pval double precision,
+    samples integer,
+    nickname text,
+    split text
+);
+
+
+ALTER TABLE correlation OWNER TO aseewald;
+
+--
+-- Name: densevecs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE densevecs (
+    imgname text,
+    canid integer,
+    type text,
+    vec text,
+    splitid integer,
+    dataset text,
+    trial integer,
+    nickname text
+);
+
+
+ALTER TABLE densevecs OWNER TO aseewald;
+
+--
+-- Name: fullyconv; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE fullyconv (
+    nickname text,
+    trial integer,
+    t integer,
+    name text,
+    walltime date,
+    loss_amount double precision,
+    samples integer,
+    posaccuracy double precision,
+    negaccuracy double precision,
+    numfuse integer
+);
+
+
+ALTER TABLE fullyconv OWNER TO aseewald;
+
+--
+-- Name: grad_variance; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE grad_variance (
+    nickname text,
+    trial integer,
+    type text,
+    num_fields integer,
+    timestep integer,
+    variance double precision
+);
+
+
+ALTER TABLE grad_variance OWNER TO aseewald;
+
+--
+-- Name: greedy_loss; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE greedy_loss (
+    nickname text,
+    numfields integer,
+    type text,
+    val double precision,
+    nsamples integer
+);
+
+
+ALTER TABLE greedy_loss OWNER TO aseewald;
+
+--
+-- Name: greedy_nicknames; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE greedy_nicknames (
+    nickname text NOT NULL,
+    field_type text,
+    splitid text,
+    include_entropy integer,
+    reg_lambda double precision
+);
+
+
+ALTER TABLE greedy_nicknames OWNER TO aseewald;
+
+--
+-- Name: greedy_trialinfo; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE greedy_trialinfo (
+    pixnickname text,
+    nickname text NOT NULL,
+    trial integer NOT NULL,
+    sample_proportion double precision
+);
+
+
+ALTER TABLE greedy_trialinfo OWNER TO aseewald;
+
+--
+-- Name: greedy_variances; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE greedy_variances (
+    nickname text,
+    numfields integer,
+    isdense text,
+    variance double precision,
+    mean double precision
+);
+
+
+ALTER TABLE greedy_variances OWNER TO aseewald;
+
+--
+-- Name: ground_truth; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE ground_truth (
+    imgname character varying,
+    canid integer,
+    classname text,
+    dataset text,
+    catprop double precision
+);
+
+
+ALTER TABLE ground_truth OWNER TO aseewald;
+
+--
+-- Name: imgsize; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE imgsize (
+    imgname text NOT NULL,
+    height integer,
+    width integer
+);
+
+
+ALTER TABLE imgsize OWNER TO aseewald;
+
+--
+-- Name: isknown; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE isknown (
+    imgname text,
+    canid integer,
+    splitid integer,
+    known integer
+);
+
+
+ALTER TABLE isknown OWNER TO aseewald;
+
+--
+-- Name: kernels; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE kernels (
+    nickname text,
+    splitid text,
+    trial integer,
+    num_candidates integer
+);
+
+
+ALTER TABLE kernels OWNER TO aseewald;
+
+--
+-- Name: learnedfields; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE learnedfields (
+    nickname text,
+    trial integer,
+    category text,
+    active_subset text,
+    num_fields integer,
+    error double precision,
+    num_affirmative integer
+);
+
+
+ALTER TABLE learnedfields OWNER TO aseewald;
+
+--
+-- Name: loss; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE loss (
+    timestep integer,
+    walltime date,
+    seen integer,
+    loss_type text,
+    loss_amount double precision,
+    samples integer,
+    nickname text,
+    split text
+);
+
+
+ALTER TABLE loss OWNER TO aseewald;
+
+--
+-- Name: metrics; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE metrics (
+    nickname text,
+    trial integer,
+    active_subset text,
+    num_fields integer,
+    nondiag double precision,
+    rowstd double precision,
+    metric text,
+    select_stepsize double precision,
+    step_stepsize double precision
+);
+
+
+ALTER TABLE metrics OWNER TO aseewald;
+
+--
+-- Name: nickname_lookup; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE nickname_lookup (
+    nickname text NOT NULL,
+    pickle_payload text
+);
+
+
+ALTER TABLE nickname_lookup OWNER TO aseewald;
+
+--
+-- Name: nickname_stats; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE nickname_stats (
+    nickname text,
+    with_crop integer,
+    with_concat integer,
+    dropout double precision,
+    initialization text,
+    filtsize integer,
+    numfilts integer,
+    conv_w integer,
+    isvanilla integer,
+    lr double precision,
+    loss_t text,
+    apply_pos text,
+    sigmanet_layers integer,
+    baseline_t text,
+    recurrent integer,
+    task text,
+    share_channels integer,
+    ctxop text
+);
+
+
+ALTER TABLE nickname_stats OWNER TO aseewald;
+
+--
+-- Name: numobj_counts; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE numobj_counts (
+    nickname text,
+    num_candidates integer,
+    quantile double precision,
+    numobj integer,
+    avg_iscorrect double precision,
+    description text,
+    ktype text
+);
+
+
+ALTER TABLE numobj_counts OWNER TO aseewald;
+
+--
+-- Name: numobjects; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE numobjects (
+    imgname text,
+    isval integer,
+    num integer
+);
+
+
+ALTER TABLE numobjects OWNER TO aseewald;
+
+--
+-- Name: pairloss; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE pairloss (
+    timestep integer,
+    walltime date,
+    seen integer,
+    loss_amount double precision,
+    samples integer,
+    nickname text,
+    split text,
+    cat_a text,
+    cat_b text
+);
+
+
+ALTER TABLE pairloss OWNER TO aseewald;
+
+--
+-- Name: pascal_pixgt; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE pascal_pixgt (
+    imgname text,
+    y integer,
+    x integer,
+    category text,
+    istrain smallint
+);
+
+
+ALTER TABLE pascal_pixgt OWNER TO aseewald;
+
+--
+-- Name: pascal_sc; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE pascal_sc (
+    category text,
+    isseen integer,
+    splitid integer,
+    dataset text
+);
+
+
+ALTER TABLE pascal_sc OWNER TO aseewald;
+
+--
+-- Name: perfect_bbox; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE perfect_bbox (
+    patchname text,
+    imgname text,
+    miny integer,
+    maxy integer,
+    minx integer,
+    maxx integer,
+    isexpanded integer,
+    isxl integer,
+    category text
+);
+
+
+ALTER TABLE perfect_bbox OWNER TO aseewald;
+
+--
+-- Name: perfect_candistrs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE perfect_candistrs (
+    imgname text,
+    patchname text,
+    splitid integer,
+    nickname text,
+    vec text,
+    tstep integer
+);
+
+
+ALTER TABLE perfect_candistrs OWNER TO aseewald;
+
+--
+-- Name: perfect_densevecs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE perfect_densevecs (
+    imgname text,
+    patchname text,
+    junk text,
+    type text,
+    vec text,
+    splitid text,
+    dataset text,
+    trial integer,
+    nickname text
+);
+
+
+ALTER TABLE perfect_densevecs OWNER TO aseewald;
+
+--
+-- Name: perfect_isknown; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE perfect_isknown (
+    imgname text,
+    splitid text,
+    patchname text,
+    category text,
+    seen integer
+);
+
+
+ALTER TABLE perfect_isknown OWNER TO aseewald;
+
+--
+-- Name: pixgt; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE pixgt (
+    imgname text,
+    y smallint,
+    x smallint,
+    category text,
+    istrain smallint
+);
+
+
+ALTER TABLE pixgt OWNER TO aseewald;
+
+--
+-- Name: purities_greedy; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE purities_greedy (
+    splitid integer,
+    quantile double precision,
+    nickname text,
+    k_type text,
+    num_fields integer,
+    num_clusters integer,
+    pooltype text,
+    netpurity double precision,
+    byclass text,
+    bycluster text,
+    gt text,
+    avg_iscorrect double precision,
+    iscorrect text,
+    description text,
+    num_candidates integer
+);
+
+
+ALTER TABLE purities_greedy OWNER TO aseewald;
+
+--
+-- Name: raw_ctx_reprs; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE raw_ctx_reprs (
+    nickname text,
+    imgname text,
+    canid integer,
+    repr text,
+    category text,
+    type text
+);
+
+
+ALTER TABLE raw_ctx_reprs OWNER TO aseewald;
+
+--
+-- Name: sigma_corr; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE sigma_corr (
+    timestep integer,
+    walltime date,
+    ctxop text,
+    isseen integer,
+    chan integer,
+    corr double precision,
+    pval double precision,
+    val integer,
+    nickname text
+);
+
+
+ALTER TABLE sigma_corr OWNER TO aseewald;
+
+--
+-- Name: sp_bbox; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE sp_bbox (
+    imgname character varying NOT NULL,
+    spid integer NOT NULL,
+    miny integer,
+    maxy integer,
+    minx integer,
+    maxx integer,
+    dataset text
+);
+
+
+ALTER TABLE sp_bbox OWNER TO aseewald;
+
+--
+-- Name: sp_centroid; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE sp_centroid (
+    imgname character varying NOT NULL,
+    spid integer NOT NULL,
+    y integer,
+    x integer,
+    dataset text
+);
+
+
+ALTER TABLE sp_centroid OWNER TO aseewald;
+
+--
+-- Name: sp_object_distribution; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE sp_object_distribution (
+    imgname text,
+    splitid integer,
+    spid integer,
+    method text,
+    vec text,
+    dataset text,
+    nickname text,
+    tstep integer
+);
+
+
+ALTER TABLE sp_object_distribution OWNER TO aseewald;
+
+--
+-- Name: split_field_candidates; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE split_field_candidates (
+    angle double precision,
+    offset_y double precision,
+    offset_x double precision,
+    id integer NOT NULL,
+    trial integer NOT NULL,
+    nickname text NOT NULL
+);
+
+
+ALTER TABLE split_field_candidates OWNER TO aseewald;
+
+--
+-- Name: splitcats; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE splitcats (
+    splitid integer,
+    seen integer,
+    category text,
+    dataset text
+);
+
+
+ALTER TABLE splitcats OWNER TO aseewald;
+
+--
+-- Name: subset_correspondence; Type: TABLE; Schema: public; Owner: aseewald
+--
+
+CREATE TABLE subset_correspondence (
+    nickname text NOT NULL,
+    trial integer NOT NULL,
+    fullidx integer NOT NULL,
+    subidx integer,
+    type text
+);
+
+
+ALTER TABLE subset_correspondence OWNER TO aseewald;
+
+--
+-- Name: tnames_pascal_0; Type: MATERIALIZED VIEW; Schema: public; Owner: aseewald
+--
+
+CREATE MATERIALIZED VIEW tnames_pascal_0 AS
+ SELECT p.imgname,
+    array_agg(DISTINCT p.category) AS array_agg
+   FROM pascal_pixgt p
+  GROUP BY p.imgname
+ HAVING ( SELECT (count(*) > 0)
+           FROM ( SELECT s.category
+                   FROM splitcats s
+                  WHERE ((s.splitid = 0) AND (s.seen = 1) AND (s.dataset = 'pascal'::text) AND (s.category = ANY (array_agg(DISTINCT p.category))))) junk)
+  WITH NO DATA;
+
+
+ALTER TABLE tnames_pascal_0 OWNER TO aseewald;
+
+--
+-- Name: tnames_pascal_1; Type: MATERIALIZED VIEW; Schema: public; Owner: aseewald
+--
+
+CREATE MATERIALIZED VIEW tnames_pascal_1 AS
+ SELECT p.imgname,
+    array_agg(DISTINCT p.category) AS array_agg
+   FROM pascal_pixgt p
+  GROUP BY p.imgname
+ HAVING ( SELECT (count(*) > 0)
+           FROM ( SELECT s.category
+                   FROM splitcats s
+                  WHERE ((s.splitid = 1) AND (s.seen = 1) AND (s.dataset = 'pascal'::text) AND (s.category = ANY (array_agg(DISTINCT p.category))))) junk)
+  WITH NO DATA;
+
+
+ALTER TABLE tnames_pascal_1 OWNER TO aseewald;
+
+--
+-- Name: tnames_pascal_3; Type: MATERIALIZED VIEW; Schema: public; Owner: aseewald
+--
+
+CREATE MATERIALIZED VIEW tnames_pascal_3 AS
+ SELECT p.imgname,
+    array_agg(DISTINCT p.category) AS array_agg
+   FROM pascal_pixgt p
+  GROUP BY p.imgname
+ HAVING ( SELECT (count(*) > 0)
+           FROM ( SELECT s.category
+                   FROM splitcats s
+                  WHERE ((s.splitid = 3) AND (s.seen = 1) AND (s.dataset = 'pascal'::text) AND (s.category = ANY (array_agg(DISTINCT p.category))))) junk)
+  WITH NO DATA;
+
+
+ALTER TABLE tnames_pascal_3 OWNER TO aseewald;
+
+--
+-- Name: candidate_bbox_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY candidate_bbox
+    ADD CONSTRAINT candidate_bbox_pkey PRIMARY KEY (imgname, canid, type, dataset);
+
+
+--
+-- Name: candidate_centroid_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY candidate_centroid
+    ADD CONSTRAINT candidate_centroid_pkey PRIMARY KEY (imgname, canid, type, dataset);
+
+
+--
+-- Name: candidate_object_distribution_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY candidate_object_distribution
+    ADD CONSTRAINT candidate_object_distribution_pkey PRIMARY KEY (imgname, splitid, canid, type, dataset);
+
+
+--
+-- Name: greedy_nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY greedy_nicknames
+    ADD CONSTRAINT greedy_nicknames_pkey PRIMARY KEY (nickname);
+
+
+--
+-- Name: greedy_trialinfo_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY greedy_trialinfo
+    ADD CONSTRAINT greedy_trialinfo_pkey PRIMARY KEY (nickname, trial);
+
+
+--
+-- Name: imgsize_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY imgsize
+    ADD CONSTRAINT imgsize_pkey PRIMARY KEY (imgname);
+
+
+--
+-- Name: nickname_lookup_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY nickname_lookup
+    ADD CONSTRAINT nickname_lookup_pkey PRIMARY KEY (nickname);
+
+
+--
+-- Name: sp_bbox_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY sp_bbox
+    ADD CONSTRAINT sp_bbox_pkey PRIMARY KEY (imgname, spid);
+
+
+--
+-- Name: sp_centroid_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY sp_centroid
+    ADD CONSTRAINT sp_centroid_pkey PRIMARY KEY (imgname, spid);
+
+
+--
+-- Name: split_field_candidates_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY split_field_candidates
+    ADD CONSTRAINT split_field_candidates_pkey PRIMARY KEY (trial, id, nickname);
+
+
+--
+-- Name: subset_correspondence_pkey; Type: CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY subset_correspondence
+    ADD CONSTRAINT subset_correspondence_pkey PRIMARY KEY (nickname, trial, fullidx);
+
+
+--
+-- Name: gtimgname; Type: INDEX; Schema: public; Owner: aseewald
+--
+
+CREATE INDEX gtimgname ON ground_truth USING btree (imgname);
+
+
+--
+-- Name: pascal_piximgname; Type: INDEX; Schema: public; Owner: aseewald
+--
+
+CREATE INDEX pascal_piximgname ON pascal_pixgt USING btree (imgname);
+
+
+--
+-- Name: pixidx; Type: INDEX; Schema: public; Owner: aseewald
+--
+
+CREATE INDEX pixidx ON pixgt USING btree (imgname);
+
+
+--
+-- Name: correlation_nickname_fkey; Type: FK CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY correlation
+    ADD CONSTRAINT correlation_nickname_fkey FOREIGN KEY (nickname) REFERENCES nickname_lookup(nickname);
+
+
+--
+-- Name: learnedfields_nickname_fkey; Type: FK CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY learnedfields
+    ADD CONSTRAINT learnedfields_nickname_fkey FOREIGN KEY (nickname) REFERENCES greedy_nicknames(nickname);
+
+
+--
+-- Name: loss_nickname_fkey; Type: FK CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY loss
+    ADD CONSTRAINT loss_nickname_fkey FOREIGN KEY (nickname) REFERENCES nickname_lookup(nickname);
+
+
+--
+-- Name: metrics_nickname_fkey; Type: FK CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY metrics
+    ADD CONSTRAINT metrics_nickname_fkey FOREIGN KEY (nickname) REFERENCES greedy_nicknames(nickname);
+
+
+--
+-- Name: nickname_stats_nickname_fkey; Type: FK CONSTRAINT; Schema: public; Owner: aseewald
+--
+
+ALTER TABLE ONLY nickname_stats
+    ADD CONSTRAINT nickname_stats_nickname_fkey FOREIGN KEY (nickname) REFERENCES nickname_lookup(nickname);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
